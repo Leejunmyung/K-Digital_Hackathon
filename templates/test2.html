@@ -1,0 +1,241 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>숨은 서울 공공시설 찾기</title>
+
+    <meta property="og:title" content="숨은 서울 시설 찾기"/>
+    <meta property="og:description" content="급할 때 찾기 어려운 서울시 시설 위치를 확인해 보세요!"/>
+    <meta property="og:image" content="/static/seoulbike.png"/>
+
+    <!-- Bootstrap CSS -->
+    <link rel=" stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script type="text/javascript"
+            src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=qeog7jwf9o&submodules=geocoder"
+    ></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+            integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+            integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+            crossorigin="anonymous"></script>
+
+
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .wrap {
+            margin: auto;
+            width: 900px;
+        }
+
+        .input-group {
+            margin: auto;
+            width: 500px;
+        }
+
+        #map {
+            width: 900px;
+            height: 500px;
+            margin: 50px auto 50px auto;
+        }
+
+    </style>
+</head>
+
+<body>
+<div class="jumbotron center">
+    <h1 class="display-4 font-weight-bold">숨은 서울 시설 찾기</h1>
+    <p></p>
+    <h3 class="lead">급할 때 찾기 어려운 서울시 시설 위치를 확인해 보세요!
+        <br>
+        조회 가능한 시설 : {지역구 화장실}, {지역구 흡연구역}, {지역구 공기주입기}, {지역구 자전거보관소}</h3>
+    <br>
+    <div class="input-group input-group-lg">
+        <input id="gu-svc" type="text" class="form-control" placeholder="구 + 시설을 입력하세요. ex) 강서구 화장실">
+        <div class="input-group-append">
+            <button type="button" class="btn btn-success" onclick="find_my_best_place()">검색하기</button>
+        </div>
+    </div>
+</div>
+<div id="map"></div>
+<div class="wrap">
+    <div class="spot-list" id="spot-box">
+    </div>
+    <script>
+        let guAndService = ["종로구 화장실", "중구 화장실", "용산구 화장실", "성동구 화장실", "광진구 화장실", "동대문구 화장실", "중랑구 화장실", "성북구 화장실", "강북구 화장실", "도봉구 화장실", "노원구 화장실", "은평구 화장실", "서대문구 화장실", "마포구 화장실", "양천구 화장실", "강서구 화장실", "구로구 화장실", "금천구 화장실", "영등포구 화장실", "동작구 화장실", "관악구 화장실", "서초구 화장실", "강남구 화장실", "송파구 화장실", "강동구 화장실", "종로구 흡연구역", "중구 흡연구역", "용산구 흡연구역", "성동구 흡연구역", "광진구 흡연구역", "동대문구 흡연구역", "중랑구 흡연구역", "성북구 흡연구역", "강북구 흡연구역", "도봉구 흡연구역", "노원구 흡연구역", "은평구 흡연구역", "서대문구 흡연구역", "마포구 흡연구역", "양천구 흡연구역", "강서구 흡연구역", "구로구 흡연구역", "금천구 흡연구역", "영등포구 흡연구역", "동작구 흡연구역", "관악구 흡연구역", "서초구 흡연구역", "강남구 흡연구역", "송파구 흡연구역", "강동구 흡연구역", "종로구 공기주입기", "중구 공기주입기", "용산구 공기주입기", "성동구 공기주입기", "광진구 공기주입기", "동대문구 공기주입기", "중랑구 공기주입기", "성북구 공기주입기", "강북구 공기주입기", "도봉구 공기주입기", "노원구 공기주입기", "은평구 공기주입기", "서대문구 공기주입기", "마포구 공기주입기", "양천구 공기주입기", "강서구 공기주입기", "구로구 공기주입기", "금천구 공기주입기", "영등포구 공기주입기", "동작구 공기주입기", "관악구 공기주입기", "서초구 공기주입기", "강남구 공기주입기", "송파구 공기주입기", "강동구 공기주입기", "종로구 자전거보관소", "중구 자전거보관소", "용산구 자전거보관소", "성동구 자전거보관소", "광진구 자전거보관소", "동대문구 자전거보관소", "중랑구 자전거보관소", "성북구 자전거보관소", "강북구 자전거보관소", "도봉구 자전거보관소", "노원구 자전거보관소", "은평구 자전거보관소", "서대문구 자전거보관소", "마포구 자전거보관소", "양천구 자전거보관소", "강서구 자전거보관소", "구로구 자전거보관소", "금천구 자전거보관소", "영등포구 자전거보관소", "동작구 자전거보관소", "관악구 자전거보관소", "서초구 자전거보관소", "강남구 자전거보관소", "송파구 자전거보관소", "강동구 자전거보관소"];
+
+        // 전달받은 구 + 시설 이름이 guAndService 목록에 있는지 확인
+        function isValidGusvc(guSvc) {
+            for (let i = 0; i < guAndService.length; i++) {
+                if (guSvc == guAndService[i]) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // 시설 검색 요청
+        function find_my_best_place() {
+            let guSvc = $('#gu-svc').val();
+            if (guSvc == '') {
+                alert('구와 시설 이름을 입력하세요');
+                return;
+            }
+            if (isValidGusvc(guSvc) == false) {
+                alert('올바른 형식으로 입력하세요');
+                return;
+            }
+            // 기존 목록이 있으면 지우기
+            $('#spot-box').empty();
+
+            // 시설 정보 요청
+            $.ajax({
+                type: "GET",
+                url: `/spot?guSvc_give=${guSvc}`,
+                data: {},
+                success: function (response) {
+                    // 시설 요청 성공 여부 검사
+                    if (response['result'] == 'success') {
+                        // 전달받은 시설 리스트를 spotList에 저장한다.
+                        let spotList = response['spot_list'];
+                        // 맛집을 HTML로 추가하기
+                        addHTML(spotList);
+                        // 지도 그리기
+                        drawMap(spotList);
+                    } else {
+                        alert('시설 정보 검색에 실패하였습니다.');
+                    }
+                }
+            });
+        }
+
+        function addHTML(spotList) {
+            for (let i = 0; i < spotList.length; i++) {
+                let tempHtml = makeCard(spotList[i]);
+                $('#spot-box').append(tempHtml);
+            }
+        }
+
+        function makeCard(spot) {
+            return `<div class="card">
+                <div class="card-body">
+                    <h5 class="card-title font-weight-bold"><a href="#" class="spot-title">${spot['title']}</a></h5>
+                    <h6 class="card-subtitle mb-2 text-muted">${spot['category']}</h6>
+                    <p class="card-text">${spot['roadAddress']}</p>
+                    <a href="${spot['link']}" target="_blank" class="card-link">길찾기</a>
+                </div>
+                </div>`;
+        }
+
+        function drawMap(spotList) {
+            for (let i = 0; i < spotList.length; i++) {
+                // 개별 시설 데이터를 spot 에 저장
+                let spot = spotList[i];
+                let lat = spot['lat'];
+                let lng = spot['lng'];
+                // 마커 목록 만들기
+                let markerList = [];
+                let contents = [];
+                // 1등 시설을 지도의 중심에 놓습니다.
+                let numberOne = new naver.maps.LatLng(lat, lng),
+                    map = new naver.maps.Map('map', {
+                        center: numberOne,
+                        zoom: 12
+                    }),
+                    marker = new naver.maps.Marker({
+                        position: numberOne,
+                        map: map
+                    });
+
+                // 1등부터 마지막까지 시설 데이터를 지도에 표시합니다.
+                for (let i = 0; i < spotList.length; i++) {
+                    let spot = spotList[i];
+                    let position = new naver.maps.LatLng(spot['lat'], spot['lng'])
+                    marker = new naver.maps.Marker({
+                        position: position,
+                        map: map
+                    });
+
+                    // 마커를 클릭했을 때 보여줄 창을 HTML 태그로 만들기
+                    let contentString = `<div class="iw_inner">
+                            <p><strong>${spot['title']}</strong></p>
+                            <p>${spot['category']}<br>
+                                ${spot['roadAddress']}<br>
+                                <a href="${spot['link']}" target="_blank">길찾기</a>
+                            </p>
+                            </div>`;
+                    // contents에 태그를 저장
+                    contents.push(contentString);
+                    // 마커 목록에 markerList 저장하기
+                    markerList.push(marker);
+                }
+
+                // 클래스명이 spot-title 카드 정보를 추출
+                const spotElement = $('.spot-title');
+
+                for (let i = 0; i < markerList.length; i++) {
+                    let marker = markerList[i];
+                    let infowindow = new naver.maps.InfoWindow({
+                        content: contents[i],
+                        maxWidth: 140,
+                        backgroundColor: "#eee",
+                        borderColor: "#2db400",
+                        borderWidth: 5,
+                        anchorSize: new naver.maps.Size(30, 30),
+                        anchorSkew: true,
+                        anchorColor: "#eee",
+                        pixelOffset: new naver.maps.Point(20, -20)
+                    });
+
+                    // 마커를 클릭했을 때 지도 위에 정보 띄우기
+                    naver.maps.Event.addListener(marker, "click", function (e) {
+                        if (infowindow.getMap()) {
+                            infowindow.close();
+                        } else {
+                            infowindow.open(map, marker);
+                        }
+                    });
+
+                    // 시설 HTML의 상호명을 클릭했을 때 지도 위에 정보 띄우기
+                    spotElement[i].addEventListener('click', function (e) {
+                        e.preventDefault();
+                        if (infowindow.getMap()) {
+                            infowindow.close();
+                        } else {
+                            infowindow.open(map, marker);
+                        }
+                    })
+
+                }
+            }
+
+        }
+
+    </script>
+</div>
+</body>
+
+</html>
